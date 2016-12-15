@@ -9,9 +9,9 @@ var game = new Phaser.Game(800, 600, Phaser.AUTO, '', {preload: preload, create:
 
 function preload() {
     game.load.image('star', 'assets/star.png');
-    game.load.image('platform', 'assets/platform.png');
+    game.load.image('platform', 'assets/platformIndustrial_003.png');
     game.load.image('sky', 'assets/sky.png');
-    game.load.spritesheet('character', 'assets/dude.png', 32, 48);
+    game.load.image('character', 'assets/robot_greenDrive1.png');
 }
 
 var platforms;
@@ -19,8 +19,9 @@ var player;
 var stars;
 var score = 0;
 var scoreText;
-var life = 10;
+var life = 30;
 var lifeText;
+var gameOver = false;
 
 function create() {
     game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -28,21 +29,24 @@ function create() {
     platforms = game.add.group();
     platforms.enableBody = true;
     var ground = platforms.create(0, game.world.height - 64, 'platform');
-    ground.scale.setTo(2, 2, 25);
+    ground.scale.setTo(12, 2);
     ground.body.immovable = true;
     var ledge = platforms.create(400, 400, 'platform');
     ledge.body.immovable = true;
-    ledge = platforms.create(-150, 250, 'platform');
+    ledge.scale.setTo(1, 0.5);
+    ledge = platforms.create(150, 250, 'platform');
     ledge.body.immovable = true;
+    ledge.scale.setTo(1, 0.5);
     player = game.add.sprite(32, game.world.height - 150, 'character');
+    player.scale.setTo(0.3, 0.3);
     game.physics.arcade.enable(player);
     player.body.bounce.y = 0.0;
     player.body.gravity.y = 300;
     player.body.collideWorldBounds = true;
-    player.animations.add('left', [0, 1, 2, 3], 10, true);
-    player.animations.add('right', [5, 6, 7, 8], 10, true);
+//    player.animations.add('left', [0, 1, 2, 3], 10, true);
+//    player.animations.add('right', [5, 6, 7, 8], 10, true);
     scoreText = game.add.text(16, 16, 'Score: 0', {fontSize: '32px', fill: '#000'});
-    lifeText = game.add.text(game.world.height - 50, 16, 'Life: 100', {fontSize: '32px', fill: '#000'});
+    lifeText = game.add.text(game.world.height - 50, 16, 'Life: 10', {fontSize: '32px', fill: '#000'});
     createStars();
 }
 
@@ -55,23 +59,31 @@ function createStars() {
 
 function update() {
     var hitPlatform = game.physics.arcade.collide(player, platforms);
-    keyControls(hitPlatform);
+    if (!gameOver) {
+        keyControls(hitPlatform);
+    }
     game.physics.arcade.collide(stars, platforms);
     game.physics.arcade.overlap(player, stars, collectStar, null, this);
-    if(life === 0){
-        game.state.start('Over');
-    }
 }
 
 function collectStar(player, star) {
     score += 10;
     scoreText.text = "Score : " + score;
+    lifeText.text = "WON";
     star.kill();
 }
 
-function jump(){
-        life -= 10;
-        lifeText.text = "Life : " + life;
+function jump() {
+    life -= 10;
+    lifeText.text = "Life : " + life;
+    die();
+}
+
+function die() {
+    if (life === 0) {
+        lifeText.text = "GAME OVER";
+        gameOver = true;
+    }
 }
 
 function keyControls(hitPlatform) {
